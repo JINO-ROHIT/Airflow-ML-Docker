@@ -58,27 +58,27 @@ def load_model(filepath: str) -> xgb.XGBClassifier:
     return joblib.load(filepath)
 
 
-# if __name__ == "__main__":
-#     pokemon_data = pd.read_csv("data/Pokemon.csv")
+if __name__ == "__main__":
+    pokemon_data = pd.read_csv("data/Pokemon.csv")
 
-#     X, y = preprocess_data(pokemon_data)
+    X, y = preprocess_data(pokemon_data)
 
-#     # Split data into train and test sets
-#     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+    # Split data into train and test sets
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-#     # Train XGBoost model
-#     best_model = train_xgboost_model(X_train, y_train)
+    # Train XGBoost model
+    best_model = train_xgboost_model(X_train, y_train)
 
-#     # Evaluate the model
-#     evaluation_results = evaluate_model(best_model, X_test, y_test)
-#     print("Evaluation Results:")
-#     print("Accuracy:", evaluation_results["accuracy"])
-#     print("Classification Report:")
-#     print(evaluation_results["classification_report"])
+    # Evaluate the model
+    evaluation_results = evaluate_model(best_model, X_test, y_test)
+    print("Evaluation Results:")
+    print("Accuracy:", evaluation_results["accuracy"])
+    print("Classification Report:")
+    print(evaluation_results["classification_report"])
 
-#     # Save the model
-#     model_filepath = 'model/xgboost.pkl'
-#     save_model(best_model, model_filepath)
+    # Save the model
+    model_filepath = 'model/xgboost.pkl'
+    save_model(best_model, model_filepath)
 
-#     # Load the model
-#     loaded_model = load_model(model_filepath)
+    # Load the model
+    loaded_model = load_model(model_filepath)
