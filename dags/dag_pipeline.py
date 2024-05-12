@@ -1,15 +1,14 @@
-import os
+from datetime import datetime, timedelta
+
 import joblib
 import pandas as pd
-import numpy as np
+import xgboost as xgb
+from airflow import DAG
+from airflow.operators.python import PythonOperator
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection import GridSearchCV, train_test_split
 from sklearn.preprocessing import LabelEncoder
-import xgboost as xgb
 
-from datetime import datetime, timedelta
-from airflow import DAG
-from airflow.operators.python import PythonOperator
 
 def read_csv(file_path):
     data = pd.read_csv(file_path)
@@ -32,9 +31,9 @@ def train_xgboost_model(X_train: pd.DataFrame, y_train: pd.Series) -> xgb.XGBCla
     return best_xgb_model
 
 def preprocess_data(**kwargs):
-    
+
     task_instance = kwargs['ti']
-    
+
     data = task_instance.xcom_pull(task_ids="read_csv")
 
     data = data.drop(columns=['number'])
@@ -47,38 +46,38 @@ def preprocess_data(**kwargs):
     X = data.drop(columns=['legendary'])
     y = data['legendary']
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
-    
+
     return X_train.to_dict(), X_test.to_dict(), y_train.to_dict(), y_test.to_dict()
 
 
 def tune( **kwargs):
-    
+
     task_instance = kwargs['ti']
-    
+
     X_train_dict, _, y_train_dict, _ = task_instance.xcom_pull(task_ids="preprocess_data")
-    
+
     X_train = pd.DataFrame.from_dict(X_train_dict)
     y_train = pd.Series(y_train_dict)
-    
+
     best_model = train_xgboost_model(X_train, y_train)
-    
+
     model_filepath = f"{model_path}/tuned_xgboost.pkl"
     joblib.dump(best_model, model_filepath)
-    
+
     return model_filepath
 
 
 def test_model(**kwargs):
-    
+
     task_instance = kwargs['ti']
-    
+
     model_filepath = task_instance.xcom_pull(task_ids="tune")
     print(model_filepath)
 
     model = joblib.load(model_filepath)
-    
+
     _, X_test_dict, _, y_test_dict = task_instance.xcom_pull(task_ids="preprocess_data")
-    
+
     X_test = pd.DataFrame.from_dict(X_test_dict)
     y_test = pd.Series(y_test_dict)
 
@@ -104,7 +103,7 @@ dag = DAG(
     catchup=False,
 )
 
-model_path = "/opt/airflow/model" 
+model_path = "/opt/airflow/model"
 file_path = "/opt/airflow/data/Pokemon.csv"
 
 t1 = PythonOperator(
